@@ -1,0 +1,8 @@
+{
+  "name": "AI Plant Doctor",
+  "description": "A progressive disease prediction system for plants using Gemini 3 Vision to detect micro-pattern deviations and forecast health risks before symptoms appear.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
