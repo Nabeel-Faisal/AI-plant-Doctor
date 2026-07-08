@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PlantProvider } from './store';
 import { ThemeProvider } from './components/ThemeProvider';
 import { ToastProvider } from './components/ToastProvider';
+import { InstallPromptProvider } from './components/InstallPrompt';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { PlantDetail } from './pages/PlantDetail';
@@ -72,17 +73,19 @@ export default function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
-        <PlantProvider>
-          {isWelcomePage ? (
-            <Welcome onStart={() => navigate('#/dashboard')} />
-          ) : (
-            <Layout navigate={navigate} currentPath={currentPath}>
-              <div key={currentPath} className="animate-fade-in-up">
-                {renderRoute()}
-              </div>
-            </Layout>
-          )}
-        </PlantProvider>
+        <InstallPromptProvider>
+          <PlantProvider>
+            {isWelcomePage ? (
+              <Welcome onStart={() => navigate('#/dashboard')} />
+            ) : (
+              <Layout navigate={navigate} currentPath={currentPath}>
+                <div key={currentPath} className="animate-fade-in-up">
+                  {renderRoute()}
+                </div>
+              </Layout>
+            )}
+          </PlantProvider>
+        </InstallPromptProvider>
       </ToastProvider>
     </ThemeProvider>
   );

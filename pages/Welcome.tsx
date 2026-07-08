@@ -1,7 +1,8 @@
 import React from 'react';
-import { Leaf, ArrowRight, Activity, Sparkles, Mic, Zap, BrainCircuit, ScanLine, Moon, Sun } from 'lucide-react';
+import { Leaf, ArrowRight, Download, Sparkles, Mic, BrainCircuit, ScanLine, Moon, Sun } from 'lucide-react';
 import { APP_NAME } from '../constants';
 import { useTheme } from '../components/ThemeProvider';
+import { useInstallPrompt } from '../components/InstallPrompt';
 
 interface Props {
   onStart: () => void;
@@ -9,6 +10,7 @@ interface Props {
 
 export const Welcome: React.FC<Props> = ({ onStart }) => {
   const { resolvedTheme, toggleTheme } = useTheme();
+  const { canInstall, promptInstall } = useInstallPrompt();
 
   return (
     <div className="min-h-screen bg-bg text-fg flex flex-col relative overflow-hidden">
@@ -58,14 +60,26 @@ export const Welcome: React.FC<Props> = ({ onStart }) => {
           Most apps react to dead leaves. We use <b className="text-fg">Groq Vision</b> to detect micro-deviations days before symptoms appear, turning you into a proactive plant parent.
         </p>
 
-        {/* CTA Button */}
-        <button
-          onClick={onStart}
-          className="group relative inline-flex items-center gap-3 bg-accent text-bg px-8 py-4 rounded-full font-bold text-lg transition-all shadow-[0_0_30px_rgb(var(--accent)/0.4)] hover:shadow-[0_0_50px_rgb(var(--accent)/0.6)] transform hover:-translate-y-1 active:scale-95 animate-fade-in-up [animation-delay:300ms]"
-        >
-          <span>Get Started</span>
-          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-        </button>
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 animate-fade-in-up [animation-delay:300ms]">
+          <button
+            onClick={onStart}
+            className="group relative inline-flex items-center gap-3 bg-accent text-bg px-8 py-4 rounded-full font-bold text-lg transition-all shadow-[0_0_30px_rgb(var(--accent)/0.4)] hover:shadow-[0_0_50px_rgb(var(--accent)/0.6)] transform hover:-translate-y-1 active:scale-95"
+          >
+            <span>Get Started</span>
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </button>
+
+          {canInstall && (
+            <button
+              onClick={promptInstall}
+              className="glass inline-flex items-center gap-2 text-fg px-6 py-4 rounded-full font-semibold transition-all hover:-translate-y-1 active:scale-95"
+            >
+              <Download className="w-5 h-5" />
+              <span>Install App</span>
+            </button>
+          )}
+        </div>
 
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-16 sm:mt-20 max-w-5xl mx-auto w-full animate-fade-in-up [animation-delay:500ms]">
