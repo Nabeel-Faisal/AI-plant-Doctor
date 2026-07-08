@@ -3,6 +3,7 @@ import { PlantProvider } from './store';
 import { ThemeProvider } from './components/ThemeProvider';
 import { ToastProvider } from './components/ToastProvider';
 import { InstallPromptProvider } from './components/InstallPrompt';
+import { InstallBanner } from './components/InstallBanner';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { PlantDetail } from './pages/PlantDetail';
@@ -84,6 +85,7 @@ export default function App() {
                 </div>
               </Layout>
             )}
+            <InstallBanner />
           </PlantProvider>
         </InstallPromptProvider>
       </ToastProvider>
