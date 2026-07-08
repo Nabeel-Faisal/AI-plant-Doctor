@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { usePlantStore } from '../store';
 import { AnalysisView } from '../components/AnalysisView';
 import { Camera, ChevronLeft, Upload, Loader2, History, AlertCircle, X, SwitchCamera, Check, RefreshCw, Sparkles, ArrowRight, Smile, Zap } from 'lucide-react';
-import { analyzePlantImage, fileToBase64, resizeImage } from '../geminiService';
+import { analyzePlantImage, fileToBase64, resizeImage } from '../groqService';
 
 interface Props {
   plantId: string;
@@ -21,7 +21,7 @@ export const PlantDetail: React.FC<Props> = ({ plantId, onBack }) => {
   const [showCamera, setShowCamera] = useState(false);
   const [cameraFacingMode, setCameraFacingMode] = useState<'environment' | 'user'>('environment');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  
+
   // State to show the latest analysis result
   const [selectedLogIndex, setSelectedLogIndex] = useState<number>(0);
 
@@ -40,16 +40,22 @@ export const PlantDetail: React.FC<Props> = ({ plantId, onBack }) => {
     };
   }, []);
 
+  // Lock background scroll while the full-screen camera overlay is open
+  useEffect(() => {
+    document.body.style.overflow = showCamera ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [showCamera]);
+
   // If plant not found
   if (!plant) {
     return (
-      <div className="min-h-screen bg-[#0f172a] flex flex-col items-center justify-center p-6 text-center">
-        <AlertCircle className="w-16 h-16 text-slate-600 mb-4" />
-        <h2 className="text-2xl font-bold text-white mb-2">Plant Not Found</h2>
-        <p className="text-slate-400 mb-6">The plant you are looking for does not exist or has been deleted.</p>
-        <button 
+      <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center">
+        <AlertCircle className="w-16 h-16 text-muted mb-4" />
+        <h2 className="font-display text-2xl font-bold text-fg mb-2">Plant Not Found</h2>
+        <p className="text-muted mb-6">The plant you are looking for does not exist or has been deleted.</p>
+        <button
           onClick={() => window.location.hash = '#/dashboard'}
-          className="bg-slate-700 hover:bg-slate-600 text-white px-6 py-3 rounded-xl font-bold transition-colors"
+          className="bg-surface border border-border text-fg px-6 py-3 rounded-xl font-bold transition-colors"
         >
           Return to Dashboard
         </button>
@@ -74,7 +80,7 @@ export const PlantDetail: React.FC<Props> = ({ plantId, onBack }) => {
       // 2. Get previous image for comparison
       const previousImage = logs.length > 0 ? logs[0].imageUrl : undefined;
 
-      // 3. Call Gemini
+      // 3. Call Groq
       const analysis = await analyzePlantImage(optimizedImage, previousImage, `${plant.name} (${plant.species})`);
 
       // 4. Save Log
@@ -116,8 +122,8 @@ export const PlantDetail: React.FC<Props> = ({ plantId, onBack }) => {
       setError(null);
       setShowCamera(true);
       setCapturedImage(null);
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: cameraFacingMode } 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: cameraFacingMode }
       });
       streamRef.current = stream;
       if (videoRef.current) {
@@ -142,10 +148,10 @@ export const PlantDetail: React.FC<Props> = ({ plantId, onBack }) => {
     }
     const newMode = cameraFacingMode === 'environment' ? 'user' : 'environment';
     setCameraFacingMode(newMode);
-    
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: newMode } 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: newMode }
       });
       streamRef.current = stream;
       if (videoRef.current) {
@@ -197,30 +203,30 @@ export const PlantDetail: React.FC<Props> = ({ plantId, onBack }) => {
 
   return (
     <div className="relative">
-      
+
       {/* Main Content */}
       <div className="space-y-6 animate-fade-in">
-        
+
         {/* Navigation & Title */}
-        <div className="flex items-center gap-4">
-          <button 
+        <div className="flex items-center gap-3">
+          <button
             onClick={onBack}
-            className="p-2 hover:bg-slate-800 rounded-full text-slate-400 transition-colors"
+            className="p-2 hover:bg-surface rounded-full text-muted transition-colors flex-shrink-0"
           >
             <ChevronLeft />
           </button>
-          <div>
-            <h1 className="text-2xl font-bold text-white">{plant.name}</h1>
-            <p className="text-slate-400 text-sm">{plant.species}</p>
+          <div className="min-w-0">
+            <h1 className="font-display text-2xl font-bold text-fg truncate">{plant.name}</h1>
+            <p className="text-muted text-sm truncate">{plant.species}</p>
           </div>
         </div>
 
         {/* Core Actions (Camera/Upload) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <button 
+          <button
             onClick={startCamera}
             disabled={isAnalyzing}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white p-4 rounded-xl shadow-lg shadow-green-900/40 flex flex-col items-center justify-center gap-2 font-bold transition-all transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+            className="bg-accent text-bg p-4 rounded-2xl shadow-[0_0_20px_rgb(var(--accent)/0.3)] flex flex-col items-center justify-center gap-2 font-bold transition-all transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isAnalyzing ? (
               <Loader2 className="animate-spin w-6 h-6" />
@@ -229,21 +235,21 @@ export const PlantDetail: React.FC<Props> = ({ plantId, onBack }) => {
             )}
             <span>Live Camera</span>
           </button>
-          
-          <button 
+
+          <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isAnalyzing}
-            className="bg-slate-700 hover:bg-slate-600 text-white p-4 rounded-xl shadow-lg flex flex-col items-center justify-center gap-2 font-bold transition-all transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+            className="bg-surface border border-border text-fg p-4 rounded-2xl flex flex-col items-center justify-center gap-2 font-bold transition-all transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
           >
             <Upload className="w-6 h-6" />
             <span>Upload File</span>
           </button>
 
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            className="hidden" 
-            accept="image/*" 
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*"
             onChange={handleFileUpload}
           />
         </div>
@@ -251,77 +257,77 @@ export const PlantDetail: React.FC<Props> = ({ plantId, onBack }) => {
         {/* AI Advanced Tools Section */}
         {logs.length > 0 && !isAnalyzing && (
           <div className="space-y-3">
-             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">AI Diagnostics</h3>
+             <h3 className="text-xs font-bold text-muted uppercase tracking-wider ml-1">AI Diagnostics</h3>
              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                {/* Digital Twin Button */}
-               <button 
+               <button
                   onClick={navigateToSimulation}
-                  className="bg-gradient-to-r from-indigo-900/40 to-purple-900/40 border border-purple-500/30 rounded-xl p-4 flex items-center justify-between shadow-lg hover:border-purple-500/60 transition-all group"
+                  className="glass rounded-2xl p-4 flex items-center justify-between hover:-translate-y-0.5 transition-transform group"
                >
                   <div className="flex items-center gap-3">
-                    <div className="bg-purple-900/50 p-2 rounded-lg group-hover:bg-purple-900 transition-colors">
+                    <div className="bg-purple-500/15 p-2 rounded-lg group-hover:bg-purple-500/25 transition-colors">
                       <Sparkles className="w-5 h-5 text-purple-400" />
                     </div>
                     <div className="text-left">
-                      <h3 className="text-white font-bold text-sm">Growth Simulator</h3>
-                      <p className="text-slate-400 text-xs">Predict future health</p>
+                      <h3 className="text-fg font-bold text-sm">Growth Simulator</h3>
+                      <p className="text-muted text-xs">Predict future health</p>
                     </div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-purple-400" />
+                  <ArrowRight className="w-4 h-4 text-purple-400 flex-shrink-0" />
                </button>
 
                {/* Plant Mood Button */}
-               <button 
+               <button
                   onClick={navigateToMood}
-                  className="bg-gradient-to-r from-yellow-900/40 to-orange-900/40 border border-orange-500/30 rounded-xl p-4 flex items-center justify-between shadow-lg hover:border-orange-500/60 transition-all group"
+                  className="glass rounded-2xl p-4 flex items-center justify-between hover:-translate-y-0.5 transition-transform group"
                >
                   <div className="flex items-center gap-3">
-                    <div className="bg-orange-900/50 p-2 rounded-lg group-hover:bg-orange-900 transition-colors">
-                      <Smile className="w-5 h-5 text-orange-400" />
+                    <div className="bg-warning/15 p-2 rounded-lg group-hover:bg-warning/25 transition-colors">
+                      <Smile className="w-5 h-5 text-warning" />
                     </div>
                     <div className="text-left">
-                      <h3 className="text-white font-bold text-sm">Check Mood</h3>
-                      <p className="text-slate-400 text-xs">Emotional inference</p>
+                      <h3 className="text-fg font-bold text-sm">Check Mood</h3>
+                      <p className="text-muted text-xs">Emotional inference</p>
                     </div>
                   </div>
-                  <Zap className="w-4 h-4 text-orange-400 fill-orange-400" />
+                  <Zap className="w-4 h-4 text-warning fill-warning flex-shrink-0" />
                </button>
              </div>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-900/20 border border-red-500/50 text-red-200 p-4 rounded-xl flex items-center gap-3 animate-fade-in">
-            <AlertCircle className="flex-shrink-0" />
-            <p>{error}</p>
+          <div className="bg-danger/10 border border-danger/30 text-fg p-4 rounded-xl flex items-center gap-3 animate-fade-in">
+            <AlertCircle className="flex-shrink-0 text-danger" />
+            <p className="text-sm">{error}</p>
           </div>
         )}
 
         {/* Empty State */}
         {logs.length === 0 && !isAnalyzing && (
-          <div className="text-center py-20 bg-slate-800/50 rounded-2xl border border-dashed border-slate-700">
+          <div className="text-center py-16 bg-surface/50 rounded-2xl border border-dashed border-border">
             <div className="relative inline-block mb-4">
-              <Camera className="w-12 h-12 text-slate-600" />
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full animate-ping" />
+              <Camera className="w-12 h-12 text-muted" />
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-success rounded-full animate-pulse2" />
             </div>
-            <h3 className="text-xl font-semibold text-slate-300">Start Health Tracking</h3>
-            <p className="text-slate-500 max-w-sm mx-auto mt-2">
-              Use the <b>Live Camera</b> to scan your plant. 
+            <h3 className="font-display text-xl font-semibold text-fg">Start Health Tracking</h3>
+            <p className="text-muted max-w-sm mx-auto mt-2 px-4">
+              Use the <b className="text-fg">Live Camera</b> to scan your plant.
               The AI will detect early signs of disease invisible to the naked eye.
             </p>
           </div>
         )}
-        
+
         {isAnalyzing && (
-            <div className="bg-emerald-900/20 border border-emerald-500/30 p-8 rounded-2xl text-center animate-pulse">
-                <Loader2 className="w-10 h-10 text-emerald-400 mx-auto mb-4 animate-spin" />
-                <h3 className="text-xl font-bold text-emerald-100">AI Plant Doctor is Analyzing...</h3>
-                <p className="text-emerald-400/70 mt-2">Checking for micro-patterns, color deviations, and structural stress.</p>
+            <div className="bg-accent/10 border border-accent/30 p-8 rounded-2xl text-center animate-pulse">
+                <Loader2 className="w-10 h-10 text-accent mx-auto mb-4 animate-spin" />
+                <h3 className="font-display text-xl font-bold text-fg">AI Plant Doctor is Analyzing...</h3>
+                <p className="text-muted mt-2">Checking for micro-patterns, color deviations, and structural stress.</p>
             </div>
         )}
 
         <div className="grid lg:grid-cols-3 gap-6">
-          
+
           {/* Main Content Area */}
           <div className="lg:col-span-2 space-y-6">
             {currentLog && currentLog.analysis && !isAnalyzing ? (
@@ -329,35 +335,35 @@ export const PlantDetail: React.FC<Props> = ({ plantId, onBack }) => {
             ) : null}
           </div>
 
-          {/* Sidebar / History */}
+          {/* History */}
           {logs.length > 0 && (
             <div className="space-y-4">
-              <h3 className="font-semibold text-slate-400 flex items-center gap-2">
+              <h3 className="font-semibold text-muted flex items-center gap-2 text-sm">
                 <History className="w-4 h-4" /> History
               </h3>
-              <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
                 {logs.map((log, idx) => (
-                  <div 
+                  <div
                     key={log.id}
                     onClick={() => setSelectedLogIndex(idx)}
-                    className={`p-3 rounded-xl border cursor-pointer transition-all flex gap-3 items-center ${
-                      selectedLogIndex === idx 
-                        ? 'bg-slate-700 border-green-500 shadow-md' 
-                        : 'bg-slate-800 border-slate-700 hover:bg-slate-700/50'
+                    className={`p-3 rounded-2xl border cursor-pointer transition-all flex gap-3 items-center ${
+                      selectedLogIndex === idx
+                        ? 'bg-surface border-accent shadow-md'
+                        : 'bg-surface/50 border-border hover:bg-surface'
                     }`}
                   >
-                    <img 
-                      src={log.thumbnailUrl} 
-                      alt="Thumbnail" 
-                      className="w-16 h-16 rounded-lg object-cover bg-slate-900" 
+                    <img
+                      src={log.thumbnailUrl}
+                      alt="Thumbnail"
+                      className="w-16 h-16 rounded-xl object-cover bg-bg flex-shrink-0"
                     />
-                    <div>
-                      <div className="text-sm font-bold text-white">
+                    <div className="min-w-0">
+                      <div className="text-sm font-bold text-fg truncate">
                         {new Date(log.date).toLocaleDateString()}
                       </div>
-                      <div className="text-xs text-slate-400">
+                      <div className="text-xs text-muted">
                         Score: <span className={
-                          (log.analysis?.healthScore || 0) > 80 ? 'text-green-400' : 'text-yellow-400'
+                          (log.analysis?.healthScore || 0) > 80 ? 'text-success' : 'text-warning'
                         }>{log.analysis?.healthScore}</span>
                       </div>
                     </div>
@@ -375,13 +381,13 @@ export const PlantDetail: React.FC<Props> = ({ plantId, onBack }) => {
           <div className="relative flex-1 bg-black overflow-hidden flex items-center justify-center">
              {!capturedImage ? (
                 <>
-                  <video 
+                  <video
                     ref={videoRef}
-                    autoPlay 
-                    playsInline 
+                    autoPlay
+                    playsInline
                     className={`absolute w-full h-full object-cover ${cameraFacingMode === 'user' ? 'scale-x-[-1]' : ''}`}
                   />
-                  
+
                   {/* Grid overlay for framing */}
                   <div className="absolute inset-0 pointer-events-none opacity-30 grid grid-cols-3 grid-rows-3">
                       <div className="border-r border-b border-white/50"></div>
@@ -397,45 +403,37 @@ export const PlantDetail: React.FC<Props> = ({ plantId, onBack }) => {
 
                   {/* Scanning Animation Line */}
                   <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                    <div className="w-full h-1 bg-green-500/80 shadow-[0_0_15px_rgba(34,197,94,0.8)] animate-[scan_3s_ease-in-out_infinite]" />
+                    <div className="w-full h-1 bg-accent/80 shadow-[0_0_15px_rgb(var(--accent)/0.8)] animate-scan" />
                   </div>
-                  <style>{`
-                    @keyframes scan {
-                      0% { transform: translateY(-10%); opacity: 0; }
-                      10% { opacity: 1; }
-                      90% { opacity: 1; }
-                      100% { transform: translateY(110%); opacity: 0; }
-                    }
-                  `}</style>
                 </>
              ) : (
-                <img 
-                  src={capturedImage} 
-                  alt="Captured" 
-                  className="absolute w-full h-full object-contain bg-black" 
+                <img
+                  src={capturedImage}
+                  alt="Captured"
+                  className="absolute w-full h-full object-contain bg-black"
                 />
              )}
 
-             <button 
+             <button
                onClick={closeCamera}
-               className="absolute top-6 right-6 p-3 bg-black/50 backdrop-blur-md rounded-full text-white hover:bg-black/70 z-10"
+               className="absolute top-6 right-6 safe-top p-3 bg-black/50 backdrop-blur-md rounded-full text-white hover:bg-black/70 z-10"
              >
                <X className="w-6 h-6" />
              </button>
-             
+
              {!capturedImage && (
-               <button 
+               <button
                  onClick={handleSwitchCamera}
-                 className="absolute top-6 left-6 p-3 bg-black/50 backdrop-blur-md rounded-full text-white hover:bg-black/70 z-10"
+                 className="absolute top-6 left-6 safe-top p-3 bg-black/50 backdrop-blur-md rounded-full text-white hover:bg-black/70 z-10"
                >
                  <SwitchCamera className="w-6 h-6" />
                </button>
              )}
           </div>
 
-          <div className="h-32 bg-[#0f172a] flex items-center justify-center gap-8 relative z-20 px-6">
+          <div className="min-h-32 bg-black safe-bottom flex items-center justify-center gap-8 relative z-20 px-6 py-6">
             {!capturedImage ? (
-              <button 
+              <button
                 onClick={capturePhoto}
                 className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center group focus:outline-none hover:bg-white/10 transition-colors"
               >
@@ -443,19 +441,19 @@ export const PlantDetail: React.FC<Props> = ({ plantId, onBack }) => {
               </button>
             ) : (
               <div className="flex w-full justify-between items-center max-w-sm mx-auto">
-                 <button 
+                 <button
                   onClick={retakePhoto}
                   className="flex flex-col items-center gap-1 text-slate-300 hover:text-white"
                 >
-                  <div className="p-3 bg-slate-800 rounded-full">
+                  <div className="p-3 bg-white/10 rounded-full">
                     <RefreshCw className="w-6 h-6" />
                   </div>
                   <span className="text-sm">Retake</span>
                 </button>
 
-                <button 
+                <button
                   onClick={confirmPhoto}
-                  className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg shadow-green-900/50 active:scale-95 transition-all"
+                  className="flex items-center gap-2 bg-accent text-bg px-8 py-4 rounded-full font-bold text-lg shadow-[0_0_20px_rgb(var(--accent)/0.5)] active:scale-95 transition-all"
                 >
                   <Check className="w-6 h-6" />
                   Analyze

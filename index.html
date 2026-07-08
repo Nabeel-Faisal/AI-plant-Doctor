@@ -2,45 +2,201 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0" />
     <title>AI Plant Doctor</title>
+    <meta name="theme-color" content="#0a1410" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#faf7ee" media="(prefers-color-scheme: light)" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Plant Doctor" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              display: ['Sora', 'sans-serif'],
+            },
+            colors: {
+              bg: 'rgb(var(--bg) / <alpha-value>)',
+              surface: 'rgb(var(--surface) / <alpha-value>)',
+              surface2: 'rgb(var(--surface2) / <alpha-value>)',
+              border: 'rgb(var(--border) / <alpha-value>)',
+              fg: 'rgb(var(--fg) / <alpha-value>)',
+              muted: 'rgb(var(--muted) / <alpha-value>)',
+              accent: 'rgb(var(--accent) / <alpha-value>)',
+              accent2: 'rgb(var(--accent2) / <alpha-value>)',
+              danger: 'rgb(var(--danger) / <alpha-value>)',
+              warning: 'rgb(var(--warning) / <alpha-value>)',
+              success: 'rgb(var(--success) / <alpha-value>)',
+            },
+            keyframes: {
+              'fade-in': {
+                '0%': { opacity: 0 },
+                '100%': { opacity: 1 },
+              },
+              'fade-in-up': {
+                '0%': { opacity: 0, transform: 'translateY(16px)' },
+                '100%': { opacity: 1, transform: 'translateY(0)' },
+              },
+              'spin-slow': {
+                '0%': { transform: 'rotate(0deg)' },
+                '100%': { transform: 'rotate(360deg)' },
+              },
+              blob: {
+                '0%, 100%': { transform: 'translate(0px, 0px) scale(1)' },
+                '33%': { transform: 'translate(20px, -30px) scale(1.1)' },
+                '66%': { transform: 'translate(-15px, 15px) scale(0.95)' },
+              },
+              scan: {
+                '0%': { transform: 'translateY(-10%)', opacity: 0 },
+                '10%': { opacity: 1 },
+                '90%': { opacity: 1 },
+                '100%': { transform: 'translateY(110%)', opacity: 0 },
+              },
+              'sheet-up': {
+                '0%': { transform: 'translateY(100%)' },
+                '100%': { transform: 'translateY(0)' },
+              },
+              pulse2: {
+                '0%, 100%': { transform: 'scale(1)', opacity: 0.6 },
+                '50%': { transform: 'scale(1.4)', opacity: 0 },
+              },
+            },
+            animation: {
+              'fade-in': 'fade-in 0.5s ease-out both',
+              'fade-in-up': 'fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both',
+              'spin-slow': 'spin-slow 6s linear infinite',
+              blob: 'blob 10s infinite ease-in-out',
+              scan: 'scan 3s ease-in-out infinite',
+              'sheet-up': 'sheet-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both',
+              pulse2: 'pulse2 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            },
+          },
+        },
+      };
+    </script>
     <style>
+      :root {
+        --bg: 250 247 238;
+        --surface: 255 255 255;
+        --surface2: 255 255 255;
+        --border: 214 210 196;
+        --fg: 30 33 28;
+        --muted: 107 114 100;
+        --accent: 22 163 94;
+        --accent2: 132 176 40;
+        --danger: 220 60 60;
+        --warning: 200 140 20;
+        --success: 22 163 94;
+      }
+
+      :root.dark {
+        --bg: 8 18 14;
+        --surface: 18 32 26;
+        --surface2: 255 255 255;
+        --border: 255 255 255;
+        --fg: 240 245 240;
+        --muted: 148 163 140;
+        --accent: 52 211 153;
+        --accent2: 190 230 90;
+        --danger: 248 113 113;
+        --warning: 250 204 21;
+        --success: 52 211 153;
+      }
+
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      html, body {
+        overscroll-behavior-y: none;
+      }
+
       body {
         font-family: 'Inter', sans-serif;
-        background-color: #0f172a; /* Slate 900 */
-        color: #f1f5f9; /* Slate 100 */
+        background-color: rgb(var(--bg));
+        color: rgb(var(--fg));
+        transition: background-color 0.3s ease, color 0.3s ease;
       }
+
+      .font-display {
+        font-family: 'Sora', sans-serif;
+      }
+
+      .glass {
+        background-color: rgb(var(--surface2) / 0.06);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgb(var(--surface2) / 0.1);
+      }
+
+      :root:not(.dark) .glass {
+        background-color: rgb(var(--surface) / 0.7);
+        border: 1px solid rgb(var(--border) / 0.5);
+        box-shadow: 0 4px 24px -8px rgb(0 0 0 / 0.06);
+      }
+
+      .safe-top {
+        padding-top: env(safe-area-inset-top);
+      }
+      .safe-bottom {
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      .safe-pb {
+        padding-bottom: calc(env(safe-area-inset-bottom) + 6rem);
+      }
+
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      .snap-x-mandatory {
+        scroll-snap-type: x mandatory;
+      }
+      .snap-center {
+        scroll-snap-align: center;
+      }
+
       /* Custom scrollbar for webkit */
       ::-webkit-scrollbar {
         width: 8px;
       }
       ::-webkit-scrollbar-track {
-        background: #1e293b; 
+        background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: #334155; 
+        background: rgb(var(--border));
         border-radius: 4px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #475569; 
+        background: rgb(var(--muted));
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
       }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "react/": "https://aistudiocdn.com/react@^19.2.1/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
-    "recharts": "https://aistudiocdn.com/recharts@^3.5.1"
-  }
-}
-</script>
 </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

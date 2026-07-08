@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PlantProvider } from './store';
+import { ThemeProvider } from './components/ThemeProvider';
+import { ToastProvider } from './components/ToastProvider';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { PlantDetail } from './pages/PlantDetail';
@@ -64,18 +66,24 @@ export default function App() {
     return <Welcome onStart={() => navigate('#/dashboard')} />;
   };
 
-  // If we are at root or welcome, show Welcome page without Layout (Sidebar)
+  // If we are at root or welcome, show Welcome page without Layout (nav shell)
   const isWelcomePage = currentPath === '#/' || currentPath === '' || currentPath === '#' || currentPath === '#/welcome';
 
   return (
-    <PlantProvider>
-      {isWelcomePage ? (
-        <Welcome onStart={() => navigate('#/dashboard')} />
-      ) : (
-        <Layout navigate={navigate} currentPath={currentPath}>
-          {renderRoute()}
-        </Layout>
-      )}
-    </PlantProvider>
+    <ThemeProvider>
+      <ToastProvider>
+        <PlantProvider>
+          {isWelcomePage ? (
+            <Welcome onStart={() => navigate('#/dashboard')} />
+          ) : (
+            <Layout navigate={navigate} currentPath={currentPath}>
+              <div key={currentPath} className="animate-fade-in-up">
+                {renderRoute()}
+              </div>
+            </Layout>
+          )}
+        </PlantProvider>
+      </ToastProvider>
+    </ThemeProvider>
   );
 }

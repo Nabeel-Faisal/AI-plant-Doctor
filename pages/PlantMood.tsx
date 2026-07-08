@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { usePlantStore } from '../store';
-import { analyzePlantMood } from '../geminiService';
+import { analyzePlantMood } from '../groqService';
 import { MoodReport } from '../types';
 import { ChevronLeft, Smile, Droplets, Sun, Thermometer, Wind, Zap, Activity, CheckCircle } from 'lucide-react';
+import { useToast } from '../components/ToastProvider';
 
 interface Props {
   plantId: string;
@@ -11,11 +12,12 @@ interface Props {
 
 export const PlantMood: React.FC<Props> = ({ plantId, onBack }) => {
   const { getPlant, addMoodReportToPlant } = usePlantStore();
+  const { showToast } = useToast();
   const plant = getPlant(plantId);
   const latestImage = plant?.logs[0]?.imageUrl;
 
   const [step, setStep] = useState<'input' | 'loading' | 'result'>('input');
-  
+
   // Sensor Inputs (Simulated inputs for the user to fill)
   const [sensors, setSensors] = useState({
     soilMoisture: 'Dry', // Dry, Moist, Wet
@@ -27,7 +29,7 @@ export const PlantMood: React.FC<Props> = ({ plantId, onBack }) => {
 
   const [moodReport, setMoodReport] = useState<MoodReport | null>(null);
 
-  if (!plant) return <div>Plant not found</div>;
+  if (!plant) return <div className="text-fg">Plant not found</div>;
 
   const handleAnalyze = async () => {
     if (!latestImage) return;
@@ -40,70 +42,70 @@ export const PlantMood: React.FC<Props> = ({ plantId, onBack }) => {
         id: crypto.randomUUID(),
         date: new Date().toISOString()
       };
-      
+
       addMoodReportToPlant(plantId, report);
       setMoodReport(report);
       setStep('result');
     } catch (e) {
       console.error(e);
-      alert("Mood analysis failed. Please try again.");
+      showToast('Mood analysis failed. Please try again.', 'error');
       setStep('input');
     }
   };
 
   const getSeriousnessColor = (level: string) => {
-    if (level === 'High') return 'bg-red-500 shadow-red-500/50';
-    if (level === 'Medium') return 'bg-yellow-500 shadow-yellow-500/50';
-    return 'bg-green-500 shadow-green-500/50';
+    if (level === 'High') return 'bg-danger shadow-danger/40';
+    if (level === 'Medium') return 'bg-warning shadow-warning/40';
+    return 'bg-success shadow-success/40';
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-        <div className="flex items-center gap-4">
-          <button 
+    <div className="space-y-6 animate-fade-in pb-4">
+        <div className="flex items-center gap-3">
+          <button
             onClick={onBack}
-            className="p-2 hover:bg-slate-800 rounded-full text-slate-400 transition-colors"
+            className="p-2 hover:bg-surface rounded-full text-muted transition-colors flex-shrink-0"
           >
             <ChevronLeft />
           </button>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <Smile className="w-5 h-5 text-yellow-400" />
-              <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">
+              <Smile className="w-5 h-5 text-warning flex-shrink-0" />
+              <h1 className="font-display text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-warning to-orange-500 truncate">
                 PlantMood AI
               </h1>
             </div>
-            <p className="text-slate-400 text-sm">Emotional inference based on biological signals</p>
+            <p className="text-muted text-sm truncate">Emotional inference based on biological signals</p>
           </div>
         </div>
 
         {step === 'input' && (
           <div className="animate-fade-in space-y-6">
              {latestImage ? (
-                <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex gap-4 items-center">
-                   <img src={latestImage} alt="Plant" className="w-16 h-16 rounded-lg object-cover" />
-                   <p className="text-sm text-slate-300">Using latest photo for visual cues.</p>
+                <div className="glass p-4 rounded-2xl flex gap-4 items-center">
+                   <img src={latestImage} alt="Plant" className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
+                   <p className="text-sm text-fg/80">Using latest photo for visual cues.</p>
                 </div>
              ) : (
-                <div className="bg-red-900/20 border border-red-500/30 p-4 rounded-xl text-red-200 text-sm">
+                <div className="bg-danger/10 border border-danger/30 p-4 rounded-xl text-fg text-sm">
                    No image available. Please take a photo in the main dashboard first.
                 </div>
              )}
 
-             <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 space-y-6">
-                <h3 className="font-bold text-white flex items-center gap-2">
+             <div className="glass p-5 sm:p-6 rounded-2xl space-y-6">
+                <h3 className="font-bold text-fg flex items-center gap-2">
                   <Activity className="w-5 h-5 text-blue-400" />
                   Sensor Data Input
                 </h3>
-                
+
                 <div>
-                   <label className="block text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
+                   <label className="block text-sm font-medium text-fg/80 mb-2 flex items-center gap-2">
                      <Droplets className="w-4 h-4 text-blue-400" /> Soil Moisture
                    </label>
-                   <select 
+                   <select
                      value={sensors.soilMoisture}
                      onChange={e => setSensors({...sensors, soilMoisture: e.target.value})}
-                     className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-blue-500"
+                     className="w-full bg-bg border border-border rounded-xl p-3.5 text-fg outline-none focus:border-blue-400"
                    >
                      <option value="Bone Dry">Bone Dry</option>
                      <option value="Dry">Dry</option>
@@ -114,13 +116,13 @@ export const PlantMood: React.FC<Props> = ({ plantId, onBack }) => {
                 </div>
 
                 <div>
-                   <label className="block text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
-                     <Sun className="w-4 h-4 text-yellow-400" /> Light Exposure
+                   <label className="block text-sm font-medium text-fg/80 mb-2 flex items-center gap-2">
+                     <Sun className="w-4 h-4 text-warning" /> Light Exposure
                    </label>
-                   <select 
+                   <select
                      value={sensors.lightLevel}
                      onChange={e => setSensors({...sensors, lightLevel: e.target.value})}
-                     className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none focus:border-yellow-500"
+                     className="w-full bg-bg border border-border rounded-xl p-3.5 text-fg outline-none focus:border-warning"
                    >
                      <option value="Low Light">Low Light / Shade</option>
                      <option value="Medium Indirect">Medium Indirect</option>
@@ -131,48 +133,48 @@ export const PlantMood: React.FC<Props> = ({ plantId, onBack }) => {
 
                 <div className="grid grid-cols-2 gap-4">
                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
-                        <Thermometer className="w-4 h-4 text-red-400" /> Temp (°C)
+                      <label className="block text-sm font-medium text-fg/80 mb-2 flex items-center gap-2">
+                        <Thermometer className="w-4 h-4 text-danger" /> Temp (°C)
                       </label>
-                      <input 
+                      <input
                         type="number"
                         value={sensors.temperature}
                         onChange={e => setSensors({...sensors, temperature: e.target.value})}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none"
+                        className="w-full bg-bg border border-border rounded-xl p-3.5 text-fg outline-none"
                       />
                    </div>
                    <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2 flex items-center gap-2">
+                      <label className="block text-sm font-medium text-fg/80 mb-2 flex items-center gap-2">
                         <Wind className="w-4 h-4 text-cyan-400" /> Humidity (%)
                       </label>
-                      <input 
+                      <input
                         type="number"
                         value={sensors.humidity}
                         onChange={e => setSensors({...sensors, humidity: e.target.value})}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none"
+                        className="w-full bg-bg border border-border rounded-xl p-3.5 text-fg outline-none"
                       />
                    </div>
                 </div>
 
                 <div>
-                   <label className="block text-sm font-medium text-slate-300 mb-2">Notes (Optional)</label>
-                   <input 
-                     type="text" 
+                   <label className="block text-sm font-medium text-fg/80 mb-2">Notes (Optional)</label>
+                   <input
+                     type="text"
                      placeholder="e.g. Dropping leaves lately..."
                      value={sensors.notes}
                      onChange={e => setSensors({...sensors, notes: e.target.value})}
-                     className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white outline-none"
+                     className="w-full bg-bg border border-border rounded-xl p-3.5 text-fg outline-none"
                    />
                 </div>
              </div>
 
-             <div className="flex justify-end">
-               <button 
+             <div className="sm:flex sm:justify-end">
+               <button
                  onClick={handleAnalyze}
                  disabled={!latestImage}
-                 className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-400 hover:to-orange-500 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-orange-900/40 flex items-center gap-2 transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                 className="w-full sm:w-auto bg-gradient-to-r from-warning to-orange-500 text-bg px-8 py-4 rounded-xl font-bold shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                >
-                 Detect Mood <Zap className="w-5 h-5 fill-white" />
+                 Detect Mood <Zap className="w-5 h-5 fill-current" />
                </button>
              </div>
           </div>
@@ -181,13 +183,13 @@ export const PlantMood: React.FC<Props> = ({ plantId, onBack }) => {
         {step === 'loading' && (
            <div className="flex flex-col items-center justify-center py-20 text-center animate-pulse">
              <div className="relative">
-               <div className="w-24 h-24 rounded-full bg-yellow-500/20 flex items-center justify-center animate-bounce">
-                  <Smile className="w-12 h-12 text-yellow-400" />
+               <div className="w-24 h-24 rounded-full bg-warning/15 flex items-center justify-center animate-bounce">
+                  <Smile className="w-12 h-12 text-warning" />
                </div>
                <Activity className="w-8 h-8 text-blue-400 absolute -bottom-2 -right-2 animate-pulse" />
              </div>
-             <h2 className="text-2xl font-bold text-white mt-8">Reading Biosignals...</h2>
-             <p className="text-slate-400 mt-2 max-w-md">
+             <h2 className="font-display text-2xl font-bold text-fg mt-8">Reading Biosignals...</h2>
+             <p className="text-muted mt-2 max-w-md px-4">
                Combining visual leaf posture with your sensor data to infer emotional state.
              </p>
            </div>
@@ -195,61 +197,61 @@ export const PlantMood: React.FC<Props> = ({ plantId, onBack }) => {
 
         {step === 'result' && moodReport && (
           <div className="space-y-6 animate-fade-in">
-             
+
              {/* Mood Hero Card */}
-             <div className="bg-slate-800 rounded-3xl p-8 border border-slate-700 text-center relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500" />
-                
-                <div className="text-8xl mb-4 transform hover:scale-110 transition-transform duration-300 cursor-default">
+             <div className="glass rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-warning via-orange-500 to-danger" />
+
+                <div className="text-7xl sm:text-8xl mb-4 transform hover:scale-110 transition-transform duration-300 cursor-default">
                    {moodReport.moodEmoji}
                 </div>
-                
-                <h2 className="text-3xl font-black text-white mb-2 tracking-tight">
+
+                <h2 className="font-display text-2xl sm:text-3xl font-black text-fg mb-2 tracking-tight">
                   "{moodReport.moodTitle}"
                 </h2>
-                
-                <p className="text-lg text-slate-300 italic max-w-xl mx-auto leading-relaxed">
+
+                <p className="text-base sm:text-lg text-fg/80 italic max-w-xl mx-auto leading-relaxed">
                    "{moodReport.moodDescription}"
                 </p>
 
-                <div className="mt-6 flex justify-center gap-2">
+                <div className="mt-6 flex flex-wrap justify-center gap-2">
                    {moodReport.biologicalSignals.map((signal, i) => (
-                      <span key={i} className="px-3 py-1 bg-slate-900 rounded-full text-xs font-bold text-slate-400 border border-slate-700">
+                      <span key={i} className="px-3 py-1 bg-bg/60 rounded-full text-xs font-bold text-muted border border-border">
                          {signal}
                       </span>
                    ))}
                 </div>
 
-                <div className={`absolute top-6 right-6 px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg ${getSeriousnessColor(moodReport.seriousness)}`}>
-                   Stress Level: {moodReport.seriousness}
+                <div className={`absolute top-4 right-4 sm:top-6 sm:right-6 px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg ${getSeriousnessColor(moodReport.seriousness)}`}>
+                   Stress: {moodReport.seriousness}
                 </div>
              </div>
 
              {/* Action Plan */}
-             <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700">
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                   <CheckCircle className="w-6 h-6 text-green-400" />
+             <div className="glass rounded-2xl p-5 sm:p-6">
+                <h3 className="font-display text-xl font-bold text-fg mb-4 flex items-center gap-2">
+                   <CheckCircle className="w-6 h-6 text-success" />
                    How to Cheer Me Up
                 </h3>
-                
+
                 <div className="space-y-4">
                    {moodReport.actionPlan.map((action, i) => (
-                      <div key={i} className="bg-slate-900 p-4 rounded-xl border-l-4 border-green-500 flex flex-col md:flex-row gap-4 md:items-center justify-between">
+                      <div key={i} className="bg-bg/60 p-4 rounded-xl border-l-4 border-success flex flex-col md:flex-row gap-3 md:items-center justify-between">
                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                               <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                               <span className="text-xs font-bold uppercase text-muted tracking-wider">
                                   {action.category}
                                </span>
-                               <span className="text-xs text-green-400 font-medium">
+                               <span className="text-xs text-success font-medium">
                                   {action.timeline}
                                </span>
                             </div>
-                            <h4 className="font-bold text-white text-lg">{action.action}</h4>
-                            <p className="text-slate-400 text-sm mt-1">{action.reason}</p>
+                            <h4 className="font-bold text-fg text-lg">{action.action}</h4>
+                            <p className="text-muted text-sm mt-1">{action.reason}</p>
                          </div>
-                         <div className="text-right hidden md:block">
-                            <span className="text-xs text-slate-500 block mb-1">Expected Result</span>
-                            <span className="text-sm font-bold text-green-300">{action.expectedImprovement}</span>
+                         <div className="text-left md:text-right flex-shrink-0">
+                            <span className="text-xs text-muted block mb-1">Expected Result</span>
+                            <span className="text-sm font-bold text-success">{action.expectedImprovement}</span>
                          </div>
                       </div>
                    ))}

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Sidebar } from './Sidebar';
+import { TopBar } from './TopBar';
+import { BottomNav } from './BottomNav';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,14 +10,20 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children, navigate, currentPath }) => {
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white">
-      <Sidebar navigate={navigate} currentPath={currentPath} />
-      
-      <div className="lg:ml-64 min-h-screen transition-all duration-300">
-        <div className="p-4 lg:p-8 pt-16 lg:pt-8 max-w-7xl mx-auto">
-          {children}
-        </div>
+    <div className="min-h-screen bg-bg text-fg relative overflow-x-hidden">
+      {/* Ambient background blobs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-[-15%] right-[-15%] w-[420px] h-[420px] bg-accent/10 rounded-full blur-[110px] animate-blob" />
+        <div className="absolute bottom-[-15%] left-[-15%] w-[420px] h-[420px] bg-accent2/10 rounded-full blur-[110px] animate-blob" style={{ animationDelay: '3s' }} />
       </div>
+
+      <TopBar />
+
+      <main className="relative max-w-3xl mx-auto px-4 pt-6 safe-pb">
+        {children}
+      </main>
+
+      <BottomNav navigate={navigate} currentPath={currentPath} />
     </div>
   );
 };
