@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { usePlantStore } from '../store';
 import { AnalysisView } from '../components/AnalysisView';
 import { Camera, ChevronLeft, Upload, Loader2, History, AlertCircle, X, SwitchCamera, Check, RefreshCw, Sparkles, ArrowRight, Smile, Zap } from 'lucide-react';
@@ -376,7 +377,7 @@ export const PlantDetail: React.FC<Props> = ({ plantId, onBack }) => {
       </div>
 
       {/* Camera Overlay */}
-      {showCamera && (
+      {showCamera && createPortal(
         <div className="fixed inset-0 z-[100] bg-black flex flex-col">
           <div className="relative flex-1 bg-black overflow-hidden flex items-center justify-center">
              {!capturedImage ? (
@@ -461,7 +462,8 @@ export const PlantDetail: React.FC<Props> = ({ plantId, onBack }) => {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

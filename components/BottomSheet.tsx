@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -19,7 +20,11 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, child
 
   if (!isOpen) return null;
 
-  return (
+  // Portal straight to <body> — this must escape any ancestor with a CSS
+  // transform (e.g. the route fade-in animation), which would otherwise
+  // turn that ancestor into the containing block for `fixed` and break
+  // full-viewport positioning.
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-end justify-center">
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
@@ -38,6 +43,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, child
         </div>
         <div className="px-6 pb-8 pt-2">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

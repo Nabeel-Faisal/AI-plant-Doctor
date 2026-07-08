@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Camera, Upload, X, ScanLine, CheckCircle, Droplets, Sun, Thermometer, Wind, Sprout, PlusCircle, SwitchCamera } from 'lucide-react';
 import { fileToBase64, resizeImage, identifyPlant } from '../groqService';
 import { PlantIdentificationResult, Plant } from '../types';
@@ -176,7 +177,7 @@ export const PlantIdentifier: React.FC<{ navigate: (path: string) => void }> = (
         </div>
       )}
 
-      {step === 'camera' && (
+      {step === 'camera' && createPortal(
         <div className="fixed inset-0 z-50 bg-black flex flex-col">
           <div className="relative flex-1 bg-black overflow-hidden flex items-center justify-center">
              <video
@@ -198,7 +199,8 @@ export const PlantIdentifier: React.FC<{ navigate: (path: string) => void }> = (
                <div className="w-16 h-16 bg-white rounded-full active:scale-90 transition-transform" />
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {step === 'preview' && image && (
