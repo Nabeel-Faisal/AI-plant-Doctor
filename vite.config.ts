@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 const API_ROUTES = [
+  'ping',
   'analyze-plant',
   'growth-simulation',
   'plant-mood',
