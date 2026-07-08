@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'http';
-import { getGroqClient, readJson, sendJson, VISION_MODEL } from './_util';
+import { getGroqClient, readJson, sendJson, VISION_MODEL } from './_util.js';
 
 const SYSTEM_INSTRUCTION = `
   You are a Sentient Plant AI. You communicate via voice and vision.
@@ -38,7 +38,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   const messages = Array.isArray(body?.messages) ? body.messages : [];
 
   try {
-    const groq = getGroqClient();
+    const groq = await getGroqClient();
     const stream = await groq.chat.completions.create({
       model: VISION_MODEL,
       messages: [{ role: 'system', content: SYSTEM_INSTRUCTION }, ...messages],

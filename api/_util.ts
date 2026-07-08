@@ -1,10 +1,15 @@
 import type { IncomingMessage, ServerResponse } from 'http';
-import Groq from 'groq-sdk';
+import type Groq from 'groq-sdk';
 
 export const VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 
-export function getGroqClient(): Groq {
-  return new Groq({ apiKey: process.env.GROQ_API_KEY });
+// Dynamic import instead of a static top-level one — under this project's
+// "type": "module" setting, Vercel's per-function bundler was crashing every
+// route that statically imported groq-sdk (FUNCTION_INVOCATION_FAILED before
+// our own error handling even ran); a dynamic import resolves it correctly.
+export async function getGroqClient(): Promise<Groq> {
+  const { default: GroqClient } = await import('groq-sdk');
+  return new GroqClient({ apiKey: process.env.GROQ_API_KEY });
 }
 
 type ReqWithBody = IncomingMessage & { body?: unknown };

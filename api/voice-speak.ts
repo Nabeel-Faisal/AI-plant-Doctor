@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'http';
-import { getGroqClient, readJson, sendJson } from './_util';
+import { getGroqClient, readJson, sendJson } from './_util.js';
 
 const TTS_MODEL = 'canopylabs/orpheus-v1-english';
 const TTS_VOICE = 'austin';
@@ -9,7 +9,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     const { text } = await readJson(req);
     if (!text) throw new Error('text is required');
 
-    const groq = getGroqClient();
+    const groq = await getGroqClient();
     const response = await groq.audio.speech.create({
       model: TTS_MODEL,
       voice: TTS_VOICE,

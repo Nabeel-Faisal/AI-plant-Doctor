@@ -1,12 +1,12 @@
 import type { IncomingMessage, ServerResponse } from 'http';
-import { getGroqClient, readJson, requestJsonCompletion, toImageContentPart, withHandler } from './_util';
+import { getGroqClient, readJson, requestJsonCompletion, toImageContentPart, withHandler } from './_util.js';
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   await withHandler(res, async () => {
     const { imageBase64 } = await readJson(req);
     if (!imageBase64) throw new Error('imageBase64 is required');
 
-    const groq = getGroqClient();
+    const groq = await getGroqClient();
     const parts: any[] = [
       toImageContentPart(imageBase64),
       {
