@@ -6,6 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 const API_ROUTES = [
   'ping',
+  'ping-groq',
   'analyze-plant',
   'growth-simulation',
   'plant-mood',
